@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Bunker.Business.Interfaces.Models
+namespace Bunker.Business.Interfaces.Responses
 {
     public class LoginResponse
     {
-        public string              UserId { get; set; }
+        public string              PlayerId { get; set; }
         public IEnumerable<string> Roles  { get; set; }
     }
 }

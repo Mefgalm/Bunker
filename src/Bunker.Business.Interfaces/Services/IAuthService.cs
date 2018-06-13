@@ -1,5 +1,6 @@
 ﻿using Bunker.Business.Interfaces.Models;
 using Bunker.Business.Interfaces.Requests;
+using Bunker.Business.Interfaces.Responses;
 
 namespace Bunker.Business.Interfaces.Services
 {

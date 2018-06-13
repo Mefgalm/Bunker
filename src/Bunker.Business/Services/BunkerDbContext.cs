@@ -10,6 +10,8 @@ namespace Bunker.Business.Services
         public DbSet<Company>       Companies      { get; set; }
         public DbSet<CompanyPlayer> CompanyPlayers { get; set; }
         public DbSet<Player>        Players        { get; set; }
+        public DbSet<PlayerRole>    PlayerRoles    { get; set; }
+        public DbSet<Role>          Roles          { get; set; }
         public DbSet<PlayerTeam>    PlayerTeams    { get; set; }
         public DbSet<Task>          Tasks          { get; set; }
         public DbSet<Team>          Teams          { get; set; }
@@ -32,6 +34,13 @@ namespace Bunker.Business.Services
 
             modelBuilder.Entity<PlayerTask>()
                         .HasKey(x => new {x.PlayerId, x.TaskId});
+
+            modelBuilder.Entity<PlayerRole>()
+                        .HasKey(x => new {x.PlayerId, x.RoleId});
+
+            modelBuilder.Entity<Player>()
+                        .HasIndex(x => x.Email)
+                        .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

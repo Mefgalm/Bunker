@@ -16,4 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Bunker.Business.Interfaces\Bunker.Business.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+      <HintPath>..\..\..\..\.nuget\packages\microsoft.aspnetcore.cryptography.keyderivation\2.1.0\lib\netcoreapp2.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
