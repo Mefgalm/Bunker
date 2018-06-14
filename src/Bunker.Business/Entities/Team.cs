@@ -5,6 +5,11 @@ namespace Bunker.Business.Entities
 {
     public class Team
     {
+        public Team()
+        {
+            Players = new List<PlayerTeam>();
+        }
+        
         [Key]
         public int Id { get; set; }
         

@@ -14,5 +14,7 @@ namespace Bunker.Business.Entities
         
         [ForeignKey(nameof(PlayerId))]
         public Player Player { get; set; }
+        
+        public bool IsOwner { get; set; }
     }
 }

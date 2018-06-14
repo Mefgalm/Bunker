@@ -14,5 +14,7 @@ namespace Bunker.Business.Entities
         
         [ForeignKey(nameof(TeamId))]
         public Team Team { get; set; }
+        
+        public bool IsOwner { get; set; }
     }
 }

@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Cryptography;
 using Bunker.Business.Entities;
+using Bunker.Business.Entities.Dictioneries;
+using Bunker.Business.Extensions;
+using Bunker.Business.Interfaces.Infrastructure;
 using Bunker.Business.Interfaces.Models;
 using Bunker.Business.Interfaces.Requests;
 using Bunker.Business.Interfaces.Responses;
@@ -15,14 +18,13 @@ namespace Bunker.Business.Services
 {
     public class AuthService : BaseService, IAuthService
     {
-        public AuthService(BunkerDbContext dbContext) : base(dbContext)
+        public AuthService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider) 
+            : base(dbContext, errorMessageProvider)
         {
         }
 
         public BaseResponse<LoginResponse> Login(string email, string password)
         {
-            const string emailOrPasswordIsIncorrect = "Email or password is wrong";
-
             var player = _dbContext.Players
                                    .Include(x => x.Roles)
                                    .ThenInclude(x => x.Role)
@@ -30,7 +32,7 @@ namespace Bunker.Business.Services
 
             if (player == null
              || !HashPassword(player.PasswordSalt, password).SequenceEqual(player.PasswordHash))
-                return BaseResponse<LoginResponse>.Fail(emailOrPasswordIsIncorrect);
+                return BaseResponse<LoginResponse>.Fail(_errorMessageProvider.EmailOrPasswordIsIncorrect);
 
             return BaseResponse<LoginResponse>.Success(new LoginResponse
             {
@@ -48,22 +50,31 @@ namespace Bunker.Business.Services
 
             byte[] playerSalt = GenerateSalt();
 
-            _dbContext.Players.Add(new Player
+            var player = new Player
             {
                 Email        = request.Email,
                 FirstName    = request.FirstName,
                 LastName     = request.LastName,
                 NickName     = request.NickName,
                 PasswordSalt = playerSalt,
-                PasswordHash = HashPassword(playerSalt, request.Password),
-            });
+                PasswordHash = HashPassword(playerSalt, request.Password)
+            };
+
+            var playerRole = new PlayerRole
+            {
+                Player = player,
+                RoleId = RoleDictionary.Init.Identifier()
+            };
+            
+            _dbContext.Players.Add(player);
+            _dbContext.PlayerRoles.Add(playerRole);
 
             _dbContext.SaveChanges();
 
             return BaseResponse<object>.Success();
         }
 
-        private byte[] GenerateSalt()
+        private static byte[] GenerateSalt()
         {
             byte[] salt = new byte[128 / 8];
             using (var rng = RandomNumberGenerator.Create())
@@ -74,7 +85,7 @@ namespace Bunker.Business.Services
             return salt;
         }
 
-        private byte[] HashPassword(byte[] salt, string password) =>
+        private static byte[] HashPassword(byte[] salt, string password) =>
             KeyDerivation.Pbkdf2(password: password,
                                  salt: salt,
                                  prf: KeyDerivationPrf.HMACSHA1,

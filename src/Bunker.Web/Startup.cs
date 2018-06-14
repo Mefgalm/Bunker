@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Bunker.Business.Interfaces.Services;
 using Bunker.Business.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -35,11 +36,15 @@ namespace Bunker.Web
             
             var connectionString = Configuration.GetConnectionString("BunkerContext");
             services.AddEntityFrameworkNpgsql().AddDbContext<BunkerDbContext>(options => options.UseNpgsql(connectionString));
+
+            services.AddTransient<IInitLoaderService, InitLoaderService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IInitLoaderService initLoaderService)
         {
+            initLoaderService.Init();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

@@ -7,6 +7,11 @@ namespace Bunker.Business.Entities
 {
     public class Role
     {
+        public Role()
+        {
+            Players = new List<PlayerRole>();
+        }
+        
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }

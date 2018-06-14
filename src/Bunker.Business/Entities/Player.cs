@@ -6,6 +6,14 @@ namespace Bunker.Business.Entities
 {
     public class Player
     {
+        public Player()
+        {
+            Companies = new List<CompanyPlayer>();
+            Tasks     = new List<Task>();
+            Teams     = new List<PlayerTeam>();
+            Roles     = new List<PlayerRole>();
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -22,7 +30,7 @@ namespace Bunker.Business.Entities
         public string LastName { get; set; }
 
         [Required]
-        [StringLength(60)]        
+        [StringLength(60)]
         public string Email { get; set; }
 
         [Required]
@@ -36,7 +44,7 @@ namespace Bunker.Business.Entities
         public ICollection<Task> Tasks { get; set; }
 
         public ICollection<PlayerTeam> Teams { get; set; }
-        
+
         public ICollection<PlayerRole> Roles { get; set; }
     }
 }
