@@ -9,6 +9,7 @@ namespace Bunker.Business.Entities
         public Challange()
         {
             Tasks = new List<Task>();
+            Teams = new List<ChallangeTeam>();
         }
 
         [Key]
@@ -33,5 +34,7 @@ namespace Bunker.Business.Entities
         
         [ForeignKey(nameof(PlayerOwnerId))]
         public Player PlayerOwner { get; set; }
+        
+        public ICollection<ChallangeTeam> Teams { get; set; }
     }
 }

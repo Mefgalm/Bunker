@@ -21,9 +21,9 @@ namespace Bunker.Business.Entities
         [StringLength(200)]
         public string Answer { get; set; }
         
-        public int? PlayerId { get; set; }
-             
-        [ForeignKey(nameof(PlayerId))]
-        public Player Player { get; set; }
+        public int ChallangeId { get; set; }
+        
+        [ForeignKey(nameof(ChallangeId))]
+        public Challange Challange { get; set; }
     }
 }

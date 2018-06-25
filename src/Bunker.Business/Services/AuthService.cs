@@ -18,7 +18,7 @@ namespace Bunker.Business.Services
 {
     public class AuthService : BaseService, IAuthService
     {
-        public AuthService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider) 
+        public AuthService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider)
             : base(dbContext, errorMessageProvider)
         {
         }
@@ -31,7 +31,7 @@ namespace Bunker.Business.Services
                                    .FirstOrDefault(x => x.Email == email);
 
             if (player == null
-             || !HashPassword(player.PasswordSalt, password).SequenceEqual(player.PasswordHash))
+                || !HashPassword(player.PasswordSalt, password).SequenceEqual(player.PasswordHash))
                 return BaseResponse<LoginResponse>.Fail(_errorMessageProvider.EmailOrPasswordIsIncorrect);
 
             return BaseResponse<LoginResponse>.Success(new LoginResponse
@@ -47,6 +47,9 @@ namespace Bunker.Business.Services
 
             if (!validationResult.Ok)
                 return validationResult;
+            
+            if(_dbContext.Players.Any(x => x.Email == request.Email))
+                return BaseResponse<object>.Fail(_errorMessageProvider.EmailAlreadyRegistered);
 
             byte[] playerSalt = GenerateSalt();
 
@@ -65,7 +68,7 @@ namespace Bunker.Business.Services
                 Player = player,
                 RoleId = RoleDictionary.Init.Identifier()
             };
-            
+
             _dbContext.Players.Add(player);
             _dbContext.PlayerRoles.Add(playerRole);
 
@@ -87,9 +90,9 @@ namespace Bunker.Business.Services
 
         private static byte[] HashPassword(byte[] salt, string password) =>
             KeyDerivation.Pbkdf2(password: password,
-                                 salt: salt,
-                                 prf: KeyDerivationPrf.HMACSHA1,
-                                 iterationCount: 10000,
-                                 numBytesRequested: 256 / 8);
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 10000,
+                numBytesRequested: 256 / 8);
     }
 }

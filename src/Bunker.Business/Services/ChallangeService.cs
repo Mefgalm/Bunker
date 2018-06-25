@@ -5,17 +5,22 @@ using Bunker.Business.Interfaces.Infrastructure;
 using Bunker.Business.Interfaces.Models;
 using Bunker.Business.Interfaces.Requests;
 using Bunker.Business.Interfaces.Services;
+using Bunker.Business.Internal.Interfaces.Services;
 
 namespace Bunker.Business.Services
 {
     public class ChallangeService : BaseService, IChallangeService
     {
-        public ChallangeService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider)
+        private readonly IMefMapper _mefMapper;
+
+        public ChallangeService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider,
+                                IMefMapper      mefMapper)
             : base(dbContext, errorMessageProvider)
         {
+            _mefMapper = mefMapper;
         }
 
-        public BaseResponse<object> Create(int ownerId, int companyId, ChallangeRequest request)
+        public BaseResponse<object> Create(int playerId, int companyId, ChallangeRequest request)
         {
             var validationResult = Validate<object>(request);
 
@@ -23,7 +28,7 @@ namespace Bunker.Business.Services
                 return validationResult;
 
             if (!_dbContext.Companies.Any(x => x.Id == companyId
-                                            && x.Players.Any(q => q.IsOwner && q.PlayerId == ownerId)))
+                                               && x.Players.Any(q => q.IsOwner && q.PlayerId == playerId)))
                 return BaseResponse<object>.Fail(_errorMessageProvider.CompanyNotFound);
 
             var challange = new Challange
@@ -31,7 +36,7 @@ namespace Bunker.Business.Services
                 CompanyId     = companyId,
                 Desciprion    = request.Description,
                 Name          = request.Name,
-                PlayerOwnerId = ownerId,
+                PlayerOwnerId = playerId,
             };
 
             _dbContext.Challanges.Add(challange);
@@ -40,15 +45,16 @@ namespace Bunker.Business.Services
             return BaseResponse<object>.Success();
         }
 
-        public BaseResponse<object> Upate(int ownerId, int challangeId, ChallangeRequest request)
+        public BaseResponse<object> Upate(int playerId, int challangeId, ChallangeRequest request)
         {
             var validationResult = Validate<object>(request);
 
             if (!validationResult.Ok)
                 return validationResult;
 
-            var challange = _dbContext.Challanges.FirstOrDefault(x => x.Id == challangeId 
-                                                                   && x.Company.Players.Any(q => q.IsOwner && q.PlayerId == ownerId));
+            var challange = _dbContext.Challanges.FirstOrDefault(x => x.Id == challangeId
+                                                                      && x.Company.Players.Any(q =>
+                                                                          q.IsOwner && q.PlayerId == playerId));
 
             if (challange == null)
                 return BaseResponse<object>.Fail(_errorMessageProvider.ChallangeNotFound);
@@ -61,10 +67,11 @@ namespace Bunker.Business.Services
             return BaseResponse<object>.Success();
         }
 
-        public BaseResponse<object> Delete(int ownerId, int challangeId)
+        public BaseResponse<object> Delete(int playerId, int challangeId)
         {
-            var challange = _dbContext.Challanges.FirstOrDefault(x => x.Id == challangeId 
-                                                                   && x.Company.Players.Any(q => q.IsOwner && q.PlayerId == ownerId));
+            var challange = _dbContext.Challanges.FirstOrDefault(x => x.Id == challangeId
+                                                                      && x.Company.Players.Any(q =>
+                                                                          q.IsOwner && q.PlayerId == playerId));
 
             if (challange == null)
                 return BaseResponse<object>.Fail(_errorMessageProvider.ChallangeNotFound);
@@ -78,42 +85,35 @@ namespace Bunker.Business.Services
         public BaseResponse<ChallangeResponse> Info(int challangeId)
         {
             var challange = _dbContext.Challanges.FirstOrDefault(x => x.Id == challangeId);
-            
-            if(challange == null)
+
+            if (challange == null)
                 return BaseResponse<ChallangeResponse>.Fail(_errorMessageProvider.ChallangeNotFound);
-            
-            return BaseResponse<ChallangeResponse>.Success(EntityToResponse(challange));
+
+            return BaseResponse<ChallangeResponse>.Success(_mefMapper.Map<Challange, ChallangeResponse>(challange));
         }
 
-        public BaseResponse<IReadOnlyCollection<ChallangeResponse>> ByPlayerOwner(int ownerId, int skip, int take) =>
+        public BaseResponse<IReadOnlyCollection<ChallangeResponse>> ByPlayerOwner(int playerId, int skip, int take) =>
             BaseResponse<IReadOnlyCollection<ChallangeResponse>>
                 .Success(_dbContext.Challanges
-                                   .Where(x => x.PlayerOwnerId == ownerId)
+                                   .Where(x => x.PlayerOwnerId == playerId)
+                                   .OrderBy(x => x.Name)
                                    .Skip(skip)
                                    .Take(take)
                                    .ToList()
-                                   .Select(EntityToResponse)
+                                   .Select(_mefMapper.Map<Challange, ChallangeResponse>)
                                    .ToList());
-        
 
-        public BaseResponse<IReadOnlyCollection<ChallangeResponse>> CompanyChallanges(int companyId, int skip, int take) =>
+
+        public BaseResponse<IReadOnlyCollection<ChallangeResponse>>
+            CompanyChallanges(int companyId, int skip, int take) =>
             BaseResponse<IReadOnlyCollection<ChallangeResponse>>
                 .Success(_dbContext.Challanges
                                    .Where(x => x.CompanyId == companyId)
+                                   .OrderBy(x => x.Name)
                                    .Skip(skip)
                                    .Take(take)
                                    .ToList()
-                                   .Select(EntityToResponse)
+                                   .Select(_mefMapper.Map<Challange, ChallangeResponse>)
                                    .ToList());
-
-        private static ChallangeResponse EntityToResponse(Challange challange) =>
-            challange == null
-                ? null
-                : new ChallangeResponse
-                {
-                    Id          = challange.Id,
-                    Description = challange.Desciprion,
-                    Name        = challange.Name,
-                };
     }
 }

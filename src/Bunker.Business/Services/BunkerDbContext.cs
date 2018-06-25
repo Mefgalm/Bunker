@@ -1,5 +1,7 @@
 ﻿using Bunker.Business.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Bunker.Business.Services
 {
@@ -16,10 +18,20 @@ namespace Bunker.Business.Services
         public DbSet<PlayerTeam>      PlayerTeams      { get; set; }
         public DbSet<Task>            Tasks            { get; set; }
         public DbSet<Team>            Teams            { get; set; }
+        public DbSet<TeamJoinInfo>    TeamJoinInfos    { get; set; }
 
         public BunkerDbContext(DbContextOptions<BunkerDbContext> options)
             : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+                    
+#if DEBUG
+            optionsBuilder.ConfigureWarnings(x => x.Throw(RelationalEventId.QueryClientEvaluationWarning));
+#endif
+            base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

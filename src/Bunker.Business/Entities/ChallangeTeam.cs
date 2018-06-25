@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bunker.Business.Entities
 {
@@ -13,5 +14,7 @@ namespace Bunker.Business.Entities
         
         [ForeignKey(nameof(TeamId))]
         public Team Team { get; set; }
+        
+        public DateTime JoinTime { get; set; }
     }
 }

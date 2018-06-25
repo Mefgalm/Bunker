@@ -1,23 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Net.WebSockets;
 using Bunker.Business.Entities;
 using Bunker.Business.Interfaces.Infrastructure;
 using Bunker.Business.Interfaces.Models;
 using Bunker.Business.Interfaces.Requests;
 using Bunker.Business.Interfaces.Services;
+using Bunker.Business.Internal.Interfaces.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bunker.Business.Services
 {
     public class CompanyService : BaseService, ICompanyService
     {
-        public CompanyService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider) 
+        private readonly IMefMapper _mefMapper;
+
+        public CompanyService(BunkerDbContext dbContext, IErrorMessageProvider errorMessageProvider,
+                              IMefMapper      mefMapper)
             : base(dbContext, errorMessageProvider)
         {
+            _mefMapper = mefMapper;
         }
 
-        public BaseResponse<object> Create(int playerOwnerId, CompanyRequest request)
+        public BaseResponse<object> Create(int playerId, CompanyRequest request)
         {
             var validationResult = Validate<object>(request);
 
@@ -40,7 +47,7 @@ namespace Bunker.Business.Services
             {
                 Company  = company,
                 IsOwner  = true,
-                PlayerId = playerOwnerId
+                PlayerId = playerId
             };
 
             _dbContext.Companies.Add(company);
@@ -50,15 +57,16 @@ namespace Bunker.Business.Services
             return BaseResponse<object>.Success();
         }
 
-        public BaseResponse<object> Update(int playerOwnerId, int companyId, CompanyRequest request)
+        public BaseResponse<object> Update(int playerId, int companyId, CompanyRequest request)
         {
             var validationResult = Validate<object>(request);
 
             if (!validationResult.Ok)
                 return validationResult;
 
-            var company = _dbContext.Companies.FirstOrDefault(x => x.Id == companyId 
-                                                                && x.Players.Any(q => q.IsOwner && q.PlayerId == playerOwnerId));
+            var company = _dbContext.Companies.FirstOrDefault(x => x.Id == companyId
+                                                                   && x.Players.Any(q =>
+                                                                       q.IsOwner && q.PlayerId == playerId));
 
             if (company == null)
                 return BaseResponse<object>.Fail(_errorMessageProvider.CompanyNotFound);
@@ -71,10 +79,11 @@ namespace Bunker.Business.Services
             return BaseResponse<object>.Success();
         }
 
-        public BaseResponse<object> Delete(int playerOwnerId, int companyId)
+        public BaseResponse<object> Delete(int playerId, int companyId)
         {
-            var company = _dbContext.Companies.FirstOrDefault(x => x.Id == companyId 
-                                                                && x.Players.Any(q => q.IsOwner && q.PlayerId == playerOwnerId));
+            var company = _dbContext.Companies.FirstOrDefault(x => x.Id == companyId
+                                                                   && x.Players.Any(q =>
+                                                                       q.IsOwner && q.PlayerId == playerId));
 
             if (company == null)
                 return BaseResponse<object>.Fail(_errorMessageProvider.CompanyNotFound);
@@ -92,17 +101,19 @@ namespace Bunker.Business.Services
             if (companyResponse == null)
                 return BaseResponse<CompanyResponse>.Fail(_errorMessageProvider.CompanyNotFound);
 
-            return BaseResponse<CompanyResponse>.Success(EntityToResponse(companyResponse));
+            return BaseResponse<CompanyResponse>.Success(_mefMapper.Map<Company, CompanyResponse>(companyResponse));
         }
 
-        public BaseResponse<IReadOnlyCollection<CompanyResponse>> ByPlayerOwner(int playerOwnerId, int skip, int take) =>
+        public BaseResponse<IReadOnlyCollection<CompanyResponse>>
+            ByPlayerOwner(int playerId, int skip, int take) =>
             BaseResponse<IReadOnlyCollection<CompanyResponse>>
                 .Success(_dbContext.Companies
-                                   .Where(x => x.Players.Any(q => q.IsOwner && q.PlayerId == playerOwnerId))
+                                   .Where(x => x.Players.Any(q => q.IsOwner && q.PlayerId == playerId))
+                                   .OrderBy(x => x.Name)
                                    .Skip(skip)
                                    .Take(take)
                                    .ToList()
-                                   .Select(EntityToResponse)
+                                   .Select(_mefMapper.Map<Company, CompanyResponse>)
                                    .ToList());
 
 
@@ -113,10 +124,11 @@ namespace Bunker.Business.Services
             return BaseResponse<IReadOnlyCollection<CompanyResponse>>
                 .Success(_dbContext.Companies
                                    .Where(x => EF.Functions.ILike(x.Name, searchPattern))
+                                   .OrderBy(x => x.Name)
                                    .Skip(skip)
                                    .Take(take)
                                    .ToList()
-                                   .Select(EntityToResponse)
+                                   .Select(_mefMapper.Map<Company, CompanyResponse>)
                                    .ToList());
         }
 
@@ -125,33 +137,24 @@ namespace Bunker.Business.Services
             BaseResponse<IReadOnlyCollection<CompanyResponse>>
                 .Success(_dbContext.Companies
                                    .Where(x => x.Players.Any(q => q.PlayerId == playerId))
+                                   .OrderBy(x => x.Name)
                                    .Skip(skip)
                                    .Take(take)
                                    .ToList()
-                                   .Select(EntityToResponse)
+                                   .Select(_mefMapper.Map<Company, CompanyResponse>)
                                    .ToList());
 
-        public BaseResponse<string> GetCompanyJoinCode(int playerOwnerId, int companyId)
+        public BaseResponse<string> GetCompanyJoinCode(int playerId, int companyId)
         {
             var company = _dbContext.Companies.Include(x => x.CompanyJoinInfo)
-                                    .FirstOrDefault(x => x.Id == companyId 
-                                                      && x.Players.Any(q => q.IsOwner && q.PlayerId == playerOwnerId));
+                                    .FirstOrDefault(x => x.Id == companyId
+                                                         && x.Players.Any(
+                                                             q => q.IsOwner && q.PlayerId == playerId));
 
             if (company == null)
                 return BaseResponse<string>.Fail(_errorMessageProvider.CompanyNotFound);
 
             return BaseResponse<string>.Success(company.CompanyJoinInfo.Key);
         }
-
-
-        private static CompanyResponse EntityToResponse(Company company) =>
-            company == null
-                ? null
-                : new CompanyResponse
-                {
-                    Id           = company.Id,
-                    Descriptipon = company.Desciprion,
-                    Name         = company.Name,
-                };
     }
 }
