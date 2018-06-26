@@ -66,7 +66,7 @@ namespace Bunker.Business.Services
             var playerRole = new PlayerRole
             {
                 Player = player,
-                RoleId = RoleDictionary.Init.Identifier()
+                RoleId = RoleDictionary.Guest.Identifier()
             };
 
             _dbContext.Players.Add(player);
@@ -79,7 +79,7 @@ namespace Bunker.Business.Services
 
         private static byte[] GenerateSalt()
         {
-            byte[] salt = new byte[128 / 8];
+            var salt = new byte[128 / 8];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);

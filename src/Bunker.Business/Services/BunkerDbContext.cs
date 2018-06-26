@@ -19,6 +19,7 @@ namespace Bunker.Business.Services
         public DbSet<Task>            Tasks            { get; set; }
         public DbSet<Team>            Teams            { get; set; }
         public DbSet<TeamJoinInfo>    TeamJoinInfos    { get; set; }
+        public DbSet<PlayerTask>      PlayerTasks      { get; set; }
 
         public BunkerDbContext(DbContextOptions<BunkerDbContext> options)
             : base(options)
@@ -27,7 +28,6 @@ namespace Bunker.Business.Services
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-                    
 #if DEBUG
             optionsBuilder.ConfigureWarnings(x => x.Throw(RelationalEventId.QueryClientEvaluationWarning));
 #endif

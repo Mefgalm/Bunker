@@ -30,21 +30,29 @@ namespace Bunker.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            
+
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                     .AddCookie();
-            
-            var connectionString = Configuration.GetConnectionString("BunkerContext");
-            services.AddEntityFrameworkNpgsql().AddDbContext<BunkerDbContext>(options => options.UseNpgsql(connectionString));
 
-            services.AddTransient<IInitLoaderService, InitLoaderService>();
+            var connectionString = Configuration.GetConnectionString("BunkerContext");
+            services.AddEntityFrameworkNpgsql()
+                    .AddDbContext<BunkerDbContext>(options => options.UseNpgsql(connectionString));
+
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IPlayerService, PlayerService>();
+            services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<IChallangeService, ChallangeService>();
+
+            services.AddScoped<IInitLoaderService, InitLoaderService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IInitLoaderService initLoaderService)
         {
             initLoaderService.Init();
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -55,10 +63,13 @@ namespace Bunker.Web
             }
 
             app.UseHttpsRedirection();
-            
+
             app.UseAuthentication();
-            
-            app.UseMvc();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default", "{controller=Auth}/{action=Login}/{id?}");
+            });
         }
     }
 }

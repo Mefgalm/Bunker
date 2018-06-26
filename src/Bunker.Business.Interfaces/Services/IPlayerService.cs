@@ -13,7 +13,7 @@ namespace Bunker.Business.Interfaces.Services
         BaseResponse<object> LeaveTeam(int playerId, int teamId);
         BaseResponse<IReadOnlyCollection<PlayerResponse>> Filter(string search, int skip, int take);
         BaseResponse<dynamic> Dashboard(int playerId);
-        BaseResponse<object> SetAnswer(int taskId, string answer);
+        BaseResponse<object> SetAnswer(int playerId, int taskId, string answer);
         BaseResponse<IReadOnlyCollection<PlayerResponse>> TeamMembers(int teamId, int skip, int take);
     }
 }

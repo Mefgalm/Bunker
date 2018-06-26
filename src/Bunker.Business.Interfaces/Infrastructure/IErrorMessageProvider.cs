@@ -2,14 +2,20 @@
 {
     public interface IErrorMessageProvider
     {
-        string CompanyNotFound                   { get; }
-        string EmailOrPasswordIsIncorrect        { get; }
-        string ChallangeNotFound                 { get; }
         string TaskNotFound                      { get; }
-        string PlayerAlreadyHasTeamInThisCompany { get; }
         string TeamNotFound                      { get; }
-        string ChallangeAlreadyAccepted          { get; }
-        string EmailAlreadyRegistered            { get; }
+        string AnswerIsWrong                     { get; }
         string PlayerNotFound                    { get; }
+        string CompanyNotFound                   { get; }
+        string ChallangeNotFound                 { get; }
+        string JoinKeyIsInvalid                  { get; }
+        string EmailAlreadyRegistered            { get; }
+        string PlayerAlreadyAddedToTeam           { get; }
+        string ChallangeAlreadyAccepted          { get; }
+        string PlayerAlreadyAddedToCompany        { get; }
+        string EmailOrPasswordIsIncorrect        { get; }
+        string PlayerDoesNotExistInThisTeam      { get; }
+        string PlayerDoesNotExistInThisCompany   { get; }
+        string PlayerAlreadyHasTeamInThisCompany { get; }
     }
 }
